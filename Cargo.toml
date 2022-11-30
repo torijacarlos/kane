@@ -6,3 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+belvo = { path = "../belvo-rust" }
+serde = { version = "1.0.148", features = ["derive"] }
+tokio = "1.22.0"
+toml = "0.5.9"
