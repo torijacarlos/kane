@@ -1,3 +1,4 @@
+use belvo::account::api as account_api;
 use belvo::client::{BelvoClient, BelvoKey, Environment};
 use belvo::link::{api as link_api, AccessMode, LinkBase, LinkDetail, LinkFilters, LinkStatus};
 use serde::Deserialize;
@@ -24,10 +25,7 @@ impl Config {
     }
 }
 
-async fn get_valid_link() -> Option<LinkDetail> {
-    let file_path = format!("./config.{}.toml", Environment::Development);
-    let config = Config::from_file(file_path).unwrap();
-    let belvo_client = BelvoClient::new(config.belvo.to_owned(), Environment::Development);
+async fn get_valid_link(config: &Config, belvo_client: &BelvoClient) -> Option<LinkDetail> {
     let filters = LinkFilters {
         access_mode: Some(AccessMode::Single),
         status: Some(LinkStatus::Valid),
@@ -46,10 +44,14 @@ async fn get_valid_link() -> Option<LinkDetail> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let link: Option<LinkDetail> = get_valid_link().await;
+    let file_path = format!("./config.{}.toml", Environment::Development);
+    let config = Config::from_file(file_path).unwrap();
+    let belvo_client = BelvoClient::new(config.belvo.to_owned(), Environment::Development);
+    let link: Option<LinkDetail> = get_valid_link(&config, &belvo_client).await;
 
     if let Some(l) = link {
         println!("{:?}", l);
+        let accounts = account_api::list(&l.id, false, &belvo_client).await?;
     } else {
         println!("No link found or created");
     }
